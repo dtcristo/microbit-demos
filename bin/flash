@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cargo build --bin $1 --release && \
+  openocd -f interface/cmsis-dap.cfg -f target/nrf51.cfg \
+    -c "program target/thumbv6m-none-eabi/release/$1 verify reset exit"

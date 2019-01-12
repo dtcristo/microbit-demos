@@ -1,4 +1,4 @@
 #!/bin/sh
 
-cargo build && \
-  arm-none-eabi-gdb -q target/thumbv6m-none-eabi/debug/micro-demo
+cargo build --bin $1 && \
+  arm-none-eabi-gdb -q target/thumbv6m-none-eabi/debug/$1
