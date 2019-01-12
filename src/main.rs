@@ -5,7 +5,7 @@ use panic_halt;
 
 use core::fmt::Write;
 
-use rt::entry;
+use cortex_m_rt::entry;
 
 use microbit::hal::delay::Delay;
 use microbit::hal::prelude::*;

@@ -5,6 +5,6 @@ authors = ["David Cristofaro <david@dtcristo.com>"]
 edition = "2018"
 
 [dependencies]
-rt = { package = "cortex-m-rt", version = "0.6.7" }
+cortex-m-rt = "0.6.7"
 microbit = "0.7.0"
 panic-halt = "0.2.0"
