@@ -1,33 +1,41 @@
 # microbit-demos
 
-Rust demos running on the BBC micro:bit.
+Rust demos running on the [BBC micro:bit](https://microbit.org/).
+
+## Demos
+
+- `leds` - Blinking LED pattern
+- `serial_buttons` - Sends button state over serial
+- `serial_echo` - Echos any serial data received
 
 ## Dependencies
 
-- BBC micro:bit device
-- `thumbv6m-none-eabi` target for Rust
-- `arm-none-eabi` and `arm-none-eabi-gdb` - Arm cross-compiler toolchain
+- `rustup target add thumbv6m-none-eabi`
+- `arm-none-eabi-gdb` - GDB debugger for Arm
 - `openocd` - Open On-Chip Debugger
 - `picocom` or `minicom` - Terminal emulator
 
-Follow
+The [Installation](https://rust-embedded.github.io/book/intro/install.html)
+guide in [The Embedded Rust Book](https://rust-embedded.github.io/book/intro/index.html)
+has tips to install some of these tools on different platforms.
 
 ## Flashing and debugging demos
 
 ### Flashing
 
-Connect BBC micro:bit via USB and flash a given demo. The micro:bit will
-automatically reboot and start running the demo.
+Connect BBC micro:bit via USB and flash a given demo.
 
 ```sh
 bin/flash demo_name
 ```
 
+The micro:bit will automatically reboot and start running the demo.
+
 ### Serial console
 
 Some demos communicate over serial. For these demos start a console session in a
-separate terminal window. The provided shell script expects the serial device at
-`/dev/ttyACM0`.
+separate terminal window. The provided shell script expects the USB console
+device at `/dev/ttyACM0`, update this if required.
 
 ```sh
 bin/console
@@ -41,7 +49,7 @@ To debug a program on the micro:bit first start the debug server.
 bin/debug_server
 ```
 
-Start a debug session for a given demo.
+Start a GDB session for a given demo.
 
 ```sh
 bin/debug demo_name
