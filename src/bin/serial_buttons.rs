@@ -8,15 +8,15 @@ use core::fmt::Write;
 use cortex_m_rt::entry;
 
 use microbit::hal::prelude::*;
-use microbit::hal::serial;
+use microbit::hal::serial::{Serial, BAUD115200};
 
 #[entry]
 fn main() -> ! {
     if let Some(p) = microbit::Peripherals::take() {
-        let mut gpio = p.GPIO.split();
+        let gpio = p.GPIO.split();
         let tx = gpio.pin24.into_push_pull_output().downgrade();
         let rx = gpio.pin25.into_floating_input().downgrade();
-        let (mut tx, _) = serial::Serial::uart0(p.UART0, tx, rx, serial::BAUD115200).split();
+        let (mut tx, _) = Serial::uart0(p.UART0, tx, rx, BAUD115200).split();
         let button_a = gpio.pin17.into_floating_input();
         let button_b = gpio.pin26.into_floating_input();
         let mut state_a_low = false;
