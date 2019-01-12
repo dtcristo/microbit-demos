@@ -3,13 +3,10 @@
 
 use panic_halt;
 
-use core::fmt::Write;
-
 use cortex_m_rt::entry;
 
 use microbit::hal::delay::Delay;
 use microbit::hal::prelude::*;
-use microbit::hal::serial;
 
 use microbit::led;
 
@@ -35,12 +32,6 @@ fn main() -> ! {
             col1, col2, col3, col4, col5, col6, col7, col8, col9, row1, row2, row3,
         );
 
-        let tx = gpio.pin24.into_push_pull_output().downgrade();
-        let rx = gpio.pin25.into_floating_input().downgrade();
-        let (mut tx, _) = serial::Serial::uart0(p.UART0, tx, rx, serial::BAUD115200).split();
-
-        let _ = write!(tx, "\n\rStarting...\n\r");
-
         let checker_a = [
             [1, 0, 1, 0, 1],
             [0, 1, 0, 1, 0],
@@ -58,7 +49,6 @@ fn main() -> ! {
         ];
 
         loop {
-            write!(tx, "Hello micro:bit!\n\r").ok();
             leds.display(&mut delay, checker_a, 1000);
             leds.display(&mut delay, checker_b, 1000);
         }
