@@ -1,12 +1,10 @@
 #![no_main]
 #![no_std]
 
-use panic_halt;
-
 use cortex_m_rt::entry;
-
 use microbit::hal::prelude::*;
 use microbit::hal::serial::{Serial, BAUD115200};
+use panic_halt;
 
 #[entry]
 fn main() -> ! {

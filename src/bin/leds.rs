@@ -1,14 +1,11 @@
 #![no_main]
 #![no_std]
 
-use panic_halt;
-
 use cortex_m_rt::entry;
-
 use microbit::hal::delay::Delay;
 use microbit::hal::prelude::*;
-
-use microbit::led;
+use microbit::led::Display;
+use panic_halt;
 
 #[entry]
 fn main() -> ! {
@@ -27,7 +24,7 @@ fn main() -> ! {
         let row1 = gpio.pin13.into_push_pull_output();
         let row2 = gpio.pin14.into_push_pull_output();
         let row3 = gpio.pin15.into_push_pull_output();
-        let mut leds = led::Display::new(
+        let mut leds = Display::new(
             col1, col2, col3, col4, col5, col6, col7, col8, col9, row1, row2, row3,
         );
 
