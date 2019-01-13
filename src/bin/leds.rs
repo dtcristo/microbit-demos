@@ -13,9 +13,8 @@ use microbit::led;
 #[entry]
 fn main() -> ! {
     if let Some(p) = microbit::Peripherals::take() {
-        let gpio = p.GPIO.split();
         let mut delay = Delay::new(p.TIMER0);
-
+        let gpio = p.GPIO.split();
         let col1 = gpio.pin4.into_push_pull_output();
         let col2 = gpio.pin5.into_push_pull_output();
         let col3 = gpio.pin6.into_push_pull_output();
@@ -39,7 +38,6 @@ fn main() -> ! {
             [0, 1, 0, 1, 0],
             [1, 0, 1, 0, 1],
         ];
-
         let checker_b = [
             [0, 1, 0, 1, 0],
             [1, 0, 1, 0, 1],
