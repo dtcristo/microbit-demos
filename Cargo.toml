@@ -6,5 +6,6 @@ edition = "2018"
 
 [dependencies]
 cortex-m-rt = "0.6.7"
+heapless = "0.4.1"
 microbit = "0.7.0"
 panic-halt = "0.2.0"
