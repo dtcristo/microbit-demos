@@ -1,13 +1,11 @@
 #![no_main]
 #![no_std]
 
-use core::cell::RefCell;
 use core::fmt::Write;
-use core::ops::DerefMut;
 use cortex_m_rt::entry;
-use nrf51::{Peripherals, RNG, UART0};
+use nrf51::Peripherals;
 use nrf51_hal::prelude::*;
-use nrf51_hal::serial::{Serial, Tx, BAUD115200};
+use nrf51_hal::serial::{Serial, BAUD115200};
 use panic_halt;
 
 #[entry]
