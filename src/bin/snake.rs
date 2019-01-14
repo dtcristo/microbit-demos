@@ -4,9 +4,10 @@
 use cortex_m_rt::entry;
 use heapless::consts::U32;
 use heapless::spsc::Queue;
-use microbit::hal::delay::Delay;
-use microbit::hal::prelude::*;
 use microbit::led::Display;
+use nrf51::Peripherals;
+use nrf51_hal::delay::Delay;
+use nrf51_hal::prelude::*;
 use panic_halt;
 
 const GRID_SIZE: (u8, u8) = (5, 5);
@@ -113,7 +114,7 @@ impl Cell {
 
 #[entry]
 fn main() -> ! {
-    if let Some(p) = microbit::Peripherals::take() {
+    if let Some(p) = Peripherals::take() {
         let mut delay = Delay::new(p.TIMER0);
         let gpio = p.GPIO.split();
         let col1 = gpio.pin4.into_push_pull_output();

@@ -2,14 +2,15 @@
 #![no_std]
 
 use cortex_m_rt::entry;
-use microbit::hal::delay::Delay;
-use microbit::hal::prelude::*;
 use microbit::led::Display;
+use nrf51::Peripherals;
+use nrf51_hal::delay::Delay;
+use nrf51_hal::prelude::*;
 use panic_halt;
 
 #[entry]
 fn main() -> ! {
-    if let Some(p) = microbit::Peripherals::take() {
+    if let Some(p) = Peripherals::take() {
         let mut delay = Delay::new(p.TIMER0);
         let gpio = p.GPIO.split();
         let col1 = gpio.pin4.into_push_pull_output();

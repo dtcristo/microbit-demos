@@ -3,13 +3,14 @@
 
 use core::fmt::Write;
 use cortex_m_rt::entry;
-use microbit::hal::prelude::*;
-use microbit::hal::serial::{Serial, BAUD115200};
+use nrf51::Peripherals;
+use nrf51_hal::prelude::*;
+use nrf51_hal::serial::{Serial, BAUD115200};
 use panic_halt;
 
 #[entry]
 fn main() -> ! {
-    if let Some(p) = microbit::Peripherals::take() {
+    if let Some(p) = Peripherals::take() {
         let gpio = p.GPIO.split();
         let tx = gpio.pin24.into_push_pull_output().downgrade();
         let rx = gpio.pin25.into_floating_input().downgrade();

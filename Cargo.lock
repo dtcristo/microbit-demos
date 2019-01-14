@@ -100,9 +100,13 @@ dependencies = [
 name = "microbit-demos"
 version = "0.1.0"
 dependencies = [
+ "cortex-m 0.5.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "cortex-m-rt 0.6.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "heapless 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "microbit 0.7.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nb 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nrf51 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "nrf51-hal 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "panic-halt 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
