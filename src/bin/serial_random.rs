@@ -24,7 +24,7 @@ fn main() -> ! {
         loop {
             // Wait for a new random value
             while p.RNG.events_valrdy.read().bits() == 0 {}
-            // Read byte from the RNG
+            // Read byte from the RNG, although read as u32 only has 8 bits of data
             let random_byte = p.RNG.value.read().bits() as u8;
             // Send byte over serial
             write!(tx, "{:x}", random_byte).unwrap();
