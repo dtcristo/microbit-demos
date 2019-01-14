@@ -12,9 +12,9 @@ use panic_halt;
 fn main() -> ! {
     if let Some(p) = Peripherals::take() {
         let gpio = p.GPIO.split();
-        let tx = gpio.pin24.into_push_pull_output().downgrade();
-        let rx = gpio.pin25.into_floating_input().downgrade();
-        let (mut tx, _) = Serial::uart0(p.UART0, tx, rx, BAUD115200).split();
+        let tx_pin = gpio.pin24.into_push_pull_output().downgrade();
+        let rx_pin = gpio.pin25.into_floating_input().downgrade();
+        let (mut tx, _) = Serial::uart0(p.UART0, tx_pin, rx_pin, BAUD115200).split();
         let button_a = gpio.pin17.into_floating_input();
         let button_b = gpio.pin26.into_floating_input();
         let mut state_a_low = false;
