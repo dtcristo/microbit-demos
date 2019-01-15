@@ -6,7 +6,9 @@ Rust demos running on the [BBC micro:bit](https://microbit.org/).
 
 - `leds` - Blinking LED pattern
 - `serial_buttons` - Sends button state over serial
+- `serial_buttons_interrupt` - Sends button state over serial, interrupts on button press/release
 - `serial_echo` - Echos any serial data received
+- `serial_random` - Generates random bytes and sent over serial
 
 ## Dependencies
 
