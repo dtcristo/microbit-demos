@@ -5,12 +5,13 @@ use cortex_m_rt::entry;
 use heapless::consts::U32;
 use heapless::spsc::Queue;
 use microbit::led::Display;
-use nrf51::Peripherals;
+use nrf51::{Peripherals, GPIOTE};
 use nrf51_hal::delay::Delay;
 use nrf51_hal::prelude::*;
 use panic_halt;
 
 const GRID_SIZE: (u8, u8) = (5, 5);
+const TICK_RATE_MS: u32 = 500;
 
 struct Game {
     snake: Snake,
@@ -25,7 +26,19 @@ impl Game {
         }
     }
 
-    fn update(&mut self) {
+    fn update(&mut self, gpiote: &GPIOTE) {
+        let a_pressed = gpiote.events_in[0].read().bits() != 0;
+        let b_pressed = gpiote.events_in[1].read().bits() != 0;
+        gpiote.events_in[0].write(|w| unsafe { w.bits(0) });
+        gpiote.events_in[1].write(|w| unsafe { w.bits(0) });
+        if let Some(turn) = match (a_pressed, b_pressed) {
+            (false, false) => None,
+            (true, false) => Some(Turn::Left),
+            (false, true) => Some(Turn::Right),
+            (true, true) => None,
+        } {
+            self.snake.turn(turn);
+        };
         self.snake.slither();
     }
 
@@ -41,7 +54,7 @@ impl Game {
         for cell in self.snake.tail.iter() {
             board[cell.y as usize][cell.x as usize] = 1;
         }
-        leds.display(delay, board, 200);
+        leds.display(delay, board, TICK_RATE_MS);
     }
 }
 
@@ -63,6 +76,10 @@ impl Snake {
         }
     }
 
+    fn turn(&mut self, turn: Turn) {
+        self.direction = self.direction.with_turn(turn);
+    }
+
     fn slither(&mut self) {
         let _ = self.tail.enqueue(self.head);
         self.head = self.head.with_direction(self.direction);
@@ -76,6 +93,35 @@ enum Direction {
     South,
     East,
     West,
+}
+
+impl Direction {
+    fn with_turn(self, turn: Turn) -> Self {
+        match self {
+            Direction::North => match turn {
+                Turn::Left => Direction::West,
+                Turn::Right => Direction::East,
+            },
+            Direction::South => match turn {
+                Turn::Left => Direction::East,
+                Turn::Right => Direction::West,
+            },
+            Direction::East => match turn {
+                Turn::Left => Direction::North,
+                Turn::Right => Direction::South,
+            },
+            Direction::West => match turn {
+                Turn::Left => Direction::South,
+                Turn::Right => Direction::North,
+            },
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
+enum Turn {
+    Left,
+    Right,
 }
 
 // struct Food {
@@ -95,19 +141,21 @@ struct Cell {
 }
 
 impl Cell {
-    fn new(x: u8, y: u8) -> Self {
+    fn new(x: i8, y: i8) -> Self {
+        let x_max = GRID_SIZE.0 as i8;
+        let y_max = GRID_SIZE.1 as i8;
         Cell {
-            x: x % GRID_SIZE.0,
-            y: y % GRID_SIZE.1,
+            x: ((x % x_max + x_max) % x_max) as u8,
+            y: ((y % y_max + y_max) % y_max) as u8,
         }
     }
 
     fn with_direction(self, direction: Direction) -> Self {
         match direction {
-            Direction::North => Cell::new(self.x, self.y - 1),
-            Direction::South => Cell::new(self.x, self.y + 1),
-            Direction::East => Cell::new(self.x + 1, self.y),
-            Direction::West => Cell::new(self.x - 1, self.y),
+            Direction::North => Cell::new(self.x as i8, (self.y - 1) as i8),
+            Direction::South => Cell::new(self.x as i8, (self.y + 1) as i8),
+            Direction::East => Cell::new((self.x + 1) as i8, self.y as i8),
+            Direction::West => Cell::new((self.x - 1) as i8, self.y as i8),
         }
     }
 }
@@ -133,11 +181,23 @@ fn main() -> ! {
             col1, col2, col3, col4, col5, col6, col7, col8, col9, row1, row2, row3,
         );
 
+        // Configure button A press events
+        let _ = gpio.pin17.into_floating_input();
+        p.GPIOTE.config[0]
+            .write(|w| unsafe { w.mode().event().psel().bits(17).polarity().hi_to_lo() });
+        p.GPIOTE.events_in[0].write(|w| unsafe { w.bits(0) });
+
+        // Configure button B press events
+        let _ = gpio.pin26.into_floating_input();
+        p.GPIOTE.config[1]
+            .write(|w| unsafe { w.mode().event().psel().bits(26).polarity().hi_to_lo() });
+        p.GPIOTE.events_in[1].write(|w| unsafe { w.bits(0) });
+
         let mut game = Game::new();
 
         loop {
             game.draw(&mut leds, &mut delay);
-            game.update();
+            game.update(&p.GPIOTE);
         }
     }
     panic!();
