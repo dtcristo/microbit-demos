@@ -32,7 +32,7 @@ fn main() -> ! {
             p.GPIOTE.intenset.write(|w| w.in0().set());
             p.GPIOTE.events_in[0].write(|w| unsafe { w.bits(0) });
 
-            // Configure button b interrupt when pressed
+            // Configure button B interrupt when pressed
             p.GPIOTE.config[1]
                 .write(|w| unsafe { w.mode().event().psel().bits(26).polarity().hi_to_lo() });
             p.GPIOTE.intenset.write(|w| w.in1().set());
