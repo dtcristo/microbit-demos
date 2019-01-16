@@ -11,18 +11,19 @@ use nrf51_hal::prelude::*;
 use panic_halt;
 
 const GRID_SIZE: (u8, u8) = (5, 5);
-const TICK_RATE_MS: u32 = 500;
+const TICK_TIME_MS: u32 = 500;
+const FRAME_TIME_MS: u32 = 100;
 
 struct Game {
     snake: Snake,
-    // food: Food,
+    food: Food,
 }
 
 impl Game {
     fn new() -> Self {
         Game {
             snake: Snake::new(),
-            // food: Food::new(),
+            food: Food::new(),
         }
     }
 
@@ -54,7 +55,12 @@ impl Game {
         for cell in self.snake.tail.iter() {
             board[cell.y as usize][cell.x as usize] = 1;
         }
-        leds.display(delay, board, TICK_RATE_MS);
+        let mut board_food = board;
+        board_food[self.food.cell.y as usize][self.food.cell.x as usize] = 1;
+        for _ in 0..((TICK_TIME_MS / FRAME_TIME_MS) / 2) {
+            leds.display(delay, board, FRAME_TIME_MS);
+            leds.display(delay, board_food, FRAME_TIME_MS);
+        }
     }
 }
 
@@ -124,15 +130,17 @@ enum Turn {
     Right,
 }
 
-// struct Food {
-//     cell: Cell,
-// }
+struct Food {
+    cell: Cell,
+}
 
-// impl Food {
-//     fn new() -> Self {
-//         Food { cell: (0, 0) }
-//     }
-// }
+impl Food {
+    fn new() -> Self {
+        Food {
+            cell: Cell::new(0, 0),
+        }
+    }
+}
 
 #[derive(Copy, Clone)]
 struct Cell {
