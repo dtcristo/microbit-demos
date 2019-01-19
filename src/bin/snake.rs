@@ -108,12 +108,9 @@ struct Snake {
 
 impl Snake {
     fn new() -> Self {
-        let mut tail: Queue<Cell, U32> = Queue::new();
-        let _ = tail.enqueue(Cell::new(0, 2));
-        let _ = tail.enqueue(Cell::new(1, 2));
         Snake {
             head: Cell::new(2, 2),
-            tail,
+            tail: Queue::new(),
             direction: Direction::East,
             dead: false,
         }
