@@ -10,7 +10,7 @@ use nrf51_hal::delay::Delay;
 use nrf51_hal::prelude::*;
 use panic_halt;
 
-const GRID_SIZE: (u8, u8) = (5, 5);
+const GRID_SIZE: (usize, usize) = (5, 5);
 const TICK_TIME_MS: u32 = 500;
 const FRAME_TIME_MS: u32 = 100;
 
@@ -40,27 +40,62 @@ impl Game {
         } {
             self.snake.turn(turn);
         };
-        self.snake.slither();
+        self.snake.slither(&self.food);
     }
 
     fn draw(&self, leds: &mut Display, delay: &mut Delay) {
-        let mut board = [
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0],
-        ];
-        board[self.snake.head.y as usize][self.snake.head.x as usize] = 1;
+        let pixels_blank = Pixels::new();
+        let mut pixels_snake = pixels_blank.clone();
+        pixels_snake.data[self.snake.head.y as usize][self.snake.head.x as usize] = 1;
         for cell in self.snake.tail.iter() {
-            board[cell.y as usize][cell.x as usize] = 1;
+            pixels_snake.data[cell.y as usize][cell.x as usize] = 1;
         }
-        let mut board_food = board;
-        board_food[self.food.cell.y as usize][self.food.cell.x as usize] = 1;
-        for _ in 0..((TICK_TIME_MS / FRAME_TIME_MS) / 2) {
-            leds.display(delay, board, FRAME_TIME_MS);
-            leds.display(delay, board_food, FRAME_TIME_MS);
+        let mut pixels_snake_food = pixels_snake.clone();
+        pixels_snake_food.data[self.food.cell.y as usize][self.food.cell.x as usize] = 1;
+        if self.snake.dead {
+            for _ in 0..((TICK_TIME_MS / FRAME_TIME_MS) / 2) {
+                leds.display(delay, pixels_blank.data, FRAME_TIME_MS);
+                leds.display(delay, pixels_snake.data, FRAME_TIME_MS);
+            }
+        } else {
+            for _ in 0..((TICK_TIME_MS / FRAME_TIME_MS) / 2) {
+                leds.display(delay, pixels_snake.data, FRAME_TIME_MS);
+                leds.display(delay, pixels_snake_food.data, FRAME_TIME_MS);
+            }
         }
+    }
+}
+
+#[derive(Clone)]
+struct Pixels {
+    data: [[u8; GRID_SIZE.0]; GRID_SIZE.1],
+}
+
+impl Pixels {
+    fn new() -> Self {
+        Pixels::with_array([
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0],
+        ])
+    }
+
+    fn with_array(data: [[u8; GRID_SIZE.0]; GRID_SIZE.1]) -> Self {
+        Pixels { data }
+    }
+
+    fn merge(&self, other: &Pixels) -> Self {
+        let mut result = self.clone();
+        for i in 0..GRID_SIZE.0 {
+            for j in 0..GRID_SIZE.1 {
+                if other.data[i][j] == 1 {
+                    result.data[i][j] = other.data[i][j];
+                }
+            }
+        }
+        result
     }
 }
 
@@ -68,6 +103,7 @@ struct Snake {
     head: Cell,
     tail: Queue<Cell, U32>,
     direction: Direction,
+    dead: bool,
 }
 
 impl Snake {
@@ -79,17 +115,34 @@ impl Snake {
             head: Cell::new(2, 2),
             tail,
             direction: Direction::East,
+            dead: false,
         }
     }
 
     fn turn(&mut self, turn: Turn) {
-        self.direction = self.direction.with_turn(turn);
+        if !self.dead {
+            self.direction = self.direction.with_turn(turn);
+        }
     }
 
-    fn slither(&mut self) {
-        let _ = self.tail.enqueue(self.head);
-        self.head = self.head.with_direction(self.direction);
-        let _ = self.tail.dequeue();
+    fn slither(&mut self, food: &Food) {
+        if !self.dead {
+            let new_head = self.head.with_direction(self.direction);
+            if self.tail.iter().skip(1).any(|&t| new_head == t) {
+                // Hit tail
+                self.dead = true;
+                return;
+            }
+            // Old head becomes front of tail
+            let _ = self.tail.enqueue(self.head);
+            if new_head == food.cell {
+                // Eat food
+            } else {
+                // Tip of tail is removed
+                let _ = self.tail.dequeue();
+            }
+            self.head = new_head;
+        }
     }
 }
 
@@ -142,7 +195,7 @@ impl Food {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq)]
 struct Cell {
     x: u8,
     y: u8,
