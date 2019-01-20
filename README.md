@@ -9,6 +9,7 @@ Rust demos running on the [BBC micro:bit](https://microbit.org/).
 - `serial_buttons_interrupt` - Sends button state over serial, interrupts on button press/release
 - `serial_echo` - Echos any serial data received
 - `serial_random` - Generates random bytes and sent over serial
+- `snake` - Classic snake game
 
 ## Dependencies
 

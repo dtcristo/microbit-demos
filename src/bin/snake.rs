@@ -1,6 +1,8 @@
 #![no_main]
 #![no_std]
 
+extern crate panic_halt;
+
 use cortex_m_rt::entry;
 use heapless::consts::U32;
 use heapless::spsc::Queue;
@@ -8,23 +10,25 @@ use microbit::led::Display;
 use nrf51::{Peripherals, GPIOTE};
 use nrf51_hal::delay::Delay;
 use nrf51_hal::prelude::*;
-use panic_halt;
+use nrf51_hal::rng;
+use rand_core::{RngCore, SeedableRng};
+use rand_xoshiro::Xoshiro256Plus;
 
 const GRID_SIZE: (usize, usize) = (5, 5);
 const TICK_TIME_MS: u32 = 500;
 const FRAME_TIME_MS: u32 = 100;
 
 struct Game {
+    rng: Xoshiro256Plus,
     snake: Snake,
     food: Food,
 }
 
 impl Game {
-    fn new() -> Self {
-        Game {
-            snake: Snake::new(),
-            food: Food::new(),
-        }
+    fn new(mut rng: Xoshiro256Plus) -> Self {
+        let snake = Snake::new();
+        let food = Food::new(&mut rng);
+        Game { rng, snake, food }
     }
 
     fn update(&mut self, gpiote: &GPIOTE) {
@@ -40,7 +44,7 @@ impl Game {
         } {
             self.snake.turn(turn);
         };
-        self.snake.slither(&self.food);
+        self.snake.slither(&mut self.food, &mut self.rng);
     }
 
     fn draw(&self, leds: &mut Display, delay: &mut Delay) {
@@ -85,18 +89,6 @@ impl Pixels {
     fn with_array(data: [[u8; GRID_SIZE.0]; GRID_SIZE.1]) -> Self {
         Pixels { data }
     }
-
-    fn merge(&self, other: &Pixels) -> Self {
-        let mut result = self.clone();
-        for i in 0..GRID_SIZE.0 {
-            for j in 0..GRID_SIZE.1 {
-                if other.data[i][j] == 1 {
-                    result.data[i][j] = other.data[i][j];
-                }
-            }
-        }
-        result
-    }
 }
 
 struct Snake {
@@ -122,7 +114,7 @@ impl Snake {
         }
     }
 
-    fn slither(&mut self, food: &Food) {
+    fn slither(&mut self, food: &mut Food, rng: &mut Xoshiro256Plus) {
         if !self.dead {
             let new_head = self.head.with_direction(self.direction);
             if self.tail.iter().skip(1).any(|&t| new_head == t) {
@@ -134,6 +126,7 @@ impl Snake {
             let _ = self.tail.enqueue(self.head);
             if new_head == food.cell {
                 // Eat food
+                food.respawn(rng);
             } else {
                 // Tip of tail is removed
                 let _ = self.tail.dequeue();
@@ -185,10 +178,14 @@ struct Food {
 }
 
 impl Food {
-    fn new() -> Self {
+    fn new(rng: &mut Xoshiro256Plus) -> Self {
         Food {
-            cell: Cell::new(0, 0),
+            cell: Cell::random(rng),
         }
+    }
+
+    fn respawn(&mut self, rng: &mut Xoshiro256Plus) {
+        self.cell = Cell::random(rng);
     }
 }
 
@@ -208,6 +205,12 @@ impl Cell {
         }
     }
 
+    fn random(rng: &mut Xoshiro256Plus) -> Self {
+        let x = gen_range(rng, 0, GRID_SIZE.0 as u32);
+        let y = gen_range(rng, 0, GRID_SIZE.1 as u32);
+        Cell::new(x as i8, y as i8)
+    }
+
     fn with_direction(self, direction: Direction) -> Self {
         match direction {
             Direction::North => Cell::new(self.x as i8, (self.y - 1) as i8),
@@ -218,11 +221,17 @@ impl Cell {
     }
 }
 
+fn gen_range(rng: &mut Xoshiro256Plus, min: u32, max: u32) -> u32 {
+    (rng.next_u32() / (429_496_729 / (max - min))) + min
+}
+
 #[entry]
 fn main() -> ! {
     if let Some(p) = Peripherals::take() {
-        let mut delay = Delay::new(p.TIMER0);
         let gpio = p.GPIO.split();
+
+        // Setup LED display
+        let mut delay = Delay::new(p.TIMER0);
         let col1 = gpio.pin4.into_push_pull_output();
         let col2 = gpio.pin5.into_push_pull_output();
         let col3 = gpio.pin6.into_push_pull_output();
@@ -251,7 +260,13 @@ fn main() -> ! {
             .write(|w| unsafe { w.mode().event().psel().bits(26).polarity().hi_to_lo() });
         p.GPIOTE.events_in[1].write(|w| unsafe { w.bits(0) });
 
-        let mut game = Game::new();
+        // Seed Xoshiro256Plus using hardware RNG peripheral
+        let mut seed = [0u8; 32];
+        rng::Rng::new(p.RNG).read(&mut seed).ok();
+        let rng = Xoshiro256Plus::from_seed(seed);
+
+        // Create game
+        let mut game = Game::new(rng);
 
         loop {
             game.draw(&mut leds, &mut delay);
