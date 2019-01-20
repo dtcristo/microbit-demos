@@ -1,6 +1,8 @@
 #![no_main]
 #![no_std]
 
+extern crate panic_halt;
+
 use core::cell::RefCell;
 use core::fmt::Write;
 use core::ops::DerefMut;
@@ -10,7 +12,6 @@ use cortex_m_rt::entry;
 use nrf51::{interrupt, Interrupt, Peripherals, GPIOTE, NVIC, UART0};
 use nrf51_hal::prelude::*;
 use nrf51_hal::serial::{Serial, Tx, BAUD115200};
-use panic_halt;
 
 static GPIOTE: Mutex<RefCell<Option<GPIOTE>>> = Mutex::new(RefCell::new(None));
 static TX: Mutex<RefCell<Option<Tx<UART0>>>> = Mutex::new(RefCell::new(None));

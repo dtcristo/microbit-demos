@@ -1,12 +1,13 @@
 #![no_main]
 #![no_std]
 
+extern crate panic_halt;
+
 use cortex_m_rt::entry;
 use microbit::led::Display;
 use nrf51::Peripherals;
 use nrf51_hal::delay::Delay;
 use nrf51_hal::prelude::*;
-use panic_halt;
 
 #[entry]
 fn main() -> ! {

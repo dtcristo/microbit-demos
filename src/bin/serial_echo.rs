@@ -1,12 +1,13 @@
 #![no_main]
 #![no_std]
 
+extern crate panic_halt;
+
 use cortex_m_rt::entry;
 use nb::block;
 use nrf51::Peripherals;
 use nrf51_hal::prelude::*;
 use nrf51_hal::serial::{Serial, BAUD115200};
-use panic_halt;
 
 #[entry]
 fn main() -> ! {
