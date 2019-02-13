@@ -38,7 +38,7 @@ The micro:bit will automatically reboot and start running the demo.
 
 Some demos communicate over serial. For these demos start a console session in a
 separate terminal window. The provided shell script expects the USB console
-device at `/dev/ttyACM0`, update this if required.
+device at `/dev/ttyACM0`, update this if required. On macOS this may be something like `/dev/cu.usbmodem14412`.
 
 ```sh
 bin/console

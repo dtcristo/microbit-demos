@@ -1,3 +1,6 @@
 #!/bin/sh
 
+# Linux
 picocom -b 115200 /dev/ttyACM0
+# macOS
+# picocom -b 115200 /dev/cu.usbmodem14412
