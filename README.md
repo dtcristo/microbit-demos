@@ -1,6 +1,11 @@
-# microbit-demos
-
-Rust demos running on the [BBC micro:bit](https://microbit.org/).
+<div align="center">
+  <h1>microbit-demos</h1>
+  <p>
+    <strong>
+      Rust demos running on the <a href="https://microbit.org/">BBC micro:bit</a>
+    </strong>
+  </p>
+</div>
 
 ## Demos
 
