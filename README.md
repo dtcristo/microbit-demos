@@ -16,6 +16,8 @@
 - `serial_random` - Generates random bytes and sent over serial
 - `snake` - Classic snake game
 
+https://user-images.githubusercontent.com/1206028/189038516-e71f4bc1-162b-4220-af4e-dbe14c5e3f00.mp4
+
 ## Dependencies
 
 - `rustup target add thumbv6m-none-eabi`
